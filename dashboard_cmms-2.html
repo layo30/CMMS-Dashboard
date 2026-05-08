@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMMS AUTO — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --bg2: #0f1625;
+    --bg3: #151d30;
+    --accent: #00d4ff;
+    --accent2: #0099cc;
+    --green: #00ff88;
+    --yellow: #ffcc00;
+    --red: #ff3355;
+    --gray: #4a5568;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --border: rgba(0, 212, 255, 0.15);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  /* HEADER */
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+
+  .logo {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: 3px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .logo span {
+    color: var(--text2);
+    font-weight: 400;
+  }
+
+  .status-dot {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--green);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* VEHICLE CARD */
+  .vehicle-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .vehicle-card::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 120px; height: 120px;
+    background: radial-gradient(circle, rgba(0,212,255,0.08) 0%, transparent 70%);
+  }
+
+  .vehicle-info h2 {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--accent);
+  }
+
+  .vehicle-info .plate {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--text2);
+    margin-top: 2px;
+  }
+
+  .vehicle-info .km {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 20px;
+    color: var(--text);
+    margin-top: 8px;
+  }
+
+  .vehicle-info .km span {
+    font-size: 12px;
+    color: var(--text2);
+  }
+
+  /* SECTION TITLE */
+  .section-title {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* KPI CARDS GRID */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .kpi-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    position: relative;
+    overflow: hidden;
+    animation: fadeIn 0.5s ease forwards;
+    opacity: 0;
+  }
+
+  .kpi-card.full {
+    grid-column: 1 / -1;
+  }
+
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--accent);
+  }
+
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.yellow::before { background: var(--yellow); }
+  .kpi-card.red::before { background: var(--red); }
+
+  .kpi-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text2);
+    margin-bottom: 6px;
+  }
+
+  .kpi-value {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 22px;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .kpi-value.accent { color: var(--accent); }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.yellow { color: var(--yellow); }
+  .kpi-value.red { color: var(--red); }
+
+  .kpi-unit {
+    font-size: 10px;
+    color: var(--text2);
+    margin-top: 4px;
+    font-family: 'Share Tech Mono', monospace;
+  }
+
+  /* SEMAPHORE */
+  .semaphore {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .sem-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+
+  .sem-row:last-child { border-bottom: none; }
+
+  .sem-bar-wrap {
+    flex: 1;
+    margin: 0 12px;
+    height: 4px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .sem-bar {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .sem-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    width: 90px;
+  }
+
+  .sem-count {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 16px;
+    width: 30px;
+    text-align: right;
+  }
+
+  /* CHART */
+  .chart-container {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .bar-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .bar-name {
+    font-size: 10px;
+    color: var(--text2);
+    width: 120px;
+    flex-shrink: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 20px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 6px;
+    transition: width 1.2s ease;
+    min-width: 30px;
+  }
+
+  .bar-val {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--bg);
+    font-weight: bold;
+  }
+
+  /* TASK LIST */
+  .task-list {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    animation: slideIn 0.4s ease forwards;
+    opacity: 0;
+  }
+
+  .task-item:last-child { border-bottom: none; }
+
+  .task-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .task-name {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text);
+  }
+
+  .task-status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .status-vencido {
+    background: rgba(255,51,85,0.15);
+    color: var(--red);
+    border: 1px solid rgba(255,51,85,0.3);
+  }
+
+  .status-proximo {
+    background: rgba(255,204,0,0.15);
+    color: var(--yellow);
+    border: 1px solid rgba(255,204,0,0.3);
+  }
+
+  .status-aldia {
+    background: rgba(0,255,136,0.15);
+    color: var(--green);
+    border: 1px solid rgba(0,255,136,0.3);
+  }
+
+  .status-sinhistorial {
+    background: rgba(74,85,104,0.3);
+    color: var(--gray);
+    border: 1px solid rgba(74,85,104,0.4);
+  }
+
+  /* FOOTER */
+  .footer {
+    text-align: center;
+    padding: 16px 0;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px;
+    color: var(--text2);
+    border-top: 1px solid var(--border);
+  }
+
+  /* LOADING */
+  .loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    gap: 16px;
+  }
+
+  .loading-text {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  .spinner {
+    width: 40px;
+    height: 40px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+  }
+
+  .error-msg {
+    background: rgba(255,51,85,0.1);
+    border: 1px solid rgba(255,51,85,0.3);
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+    font-size: 13px;
+    color: var(--red);
+    margin: 20px 0;
+  }
+
+  #app { display: none; }
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">CARGANDO DATOS...</div>
+</div>
+
+<div id="app">
+<div class="container">
+  <header>
+    <div class="logo">CMMS <span>AUTO</span></div>
+    <div class="status-dot">
+      <div class="dot"></div>
+      <span id="last-update">EN VIVO</span>
+    </div>
+  </header>
+
+  <!-- VEHICLE -->
+  <div class="vehicle-card">
+    <div class="vehicle-info">
+      <h2 id="v-modelo">—</h2>
+      <div class="plate" id="v-placa">—</div>
+      <div class="km" id="v-km">— <span>km</span></div>
+    </div>
+  </div>
+
+  <!-- COSTOS -->
+  <div class="section-title">Costos</div>
+  <div class="kpi-grid">
+    <div class="kpi-card full accent" style="animation-delay:0.1s">
+      <div class="kpi-label">Costo Total Acumulado</div>
+      <div class="kpi-value accent" id="kpi-total">—</div>
+      <div class="kpi-unit">Balboas</div>
+    </div>
+    <div class="kpi-card green" style="animation-delay:0.2s">
+      <div class="kpi-label">Preventivo</div>
+      <div class="kpi-value green" id="kpi-prev">—</div>
+      <div class="kpi-unit">B/.</div>
+    </div>
+    <div class="kpi-card red" style="animation-delay:0.3s">
+      <div class="kpi-label">Correctivo</div>
+      <div class="kpi-value red" id="kpi-corr">—</div>
+      <div class="kpi-unit">B/.</div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.4s">
+      <div class="kpi-label">Promedio / Servicio</div>
+      <div class="kpi-value accent" id="kpi-prom">—</div>
+      <div class="kpi-unit">B/.</div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.5s">
+      <div class="kpi-label">Costo / Km</div>
+      <div class="kpi-value" id="kpi-km">—</div>
+      <div class="kpi-unit">B/. por km</div>
+    </div>
+  </div>
+
+  <!-- MANTENIMIENTO -->
+  <div class="section-title">Mantenimiento</div>
+  <div class="kpi-grid" style="margin-bottom:12px">
+    <div class="kpi-card full" style="animation-delay:0.3s">
+      <div class="kpi-label">Total Servicios Realizados</div>
+      <div class="kpi-value accent" id="kpi-servicios">—</div>
+      <div class="kpi-unit">intervenciones</div>
+    </div>
+  </div>
+
+  <!-- SEMAPHORE -->
+  <div class="semaphore">
+    <div class="sem-row">
+      <div class="sem-label" style="color:var(--red)">VENCIDO</div>
+      <div class="sem-bar-wrap">
+        <div class="sem-bar" id="bar-vencido" style="background:var(--red);width:0%"></div>
+      </div>
+      <div class="sem-count" style="color:var(--red)" id="cnt-vencido">—</div>
+    </div>
+    <div class="sem-row">
+      <div class="sem-label" style="color:var(--yellow)">PRÓXIMO</div>
+      <div class="sem-bar-wrap">
+        <div class="sem-bar" id="bar-proximo" style="background:var(--yellow);width:0%"></div>
+      </div>
+      <div class="sem-count" style="color:var(--yellow)" id="cnt-proximo">—</div>
+    </div>
+    <div class="sem-row">
+      <div class="sem-label" style="color:var(--green)">AL DÍA</div>
+      <div class="sem-bar-wrap">
+        <div class="sem-bar" id="bar-aldia" style="background:var(--green);width:0%"></div>
+      </div>
+      <div class="sem-count" style="color:var(--green)" id="cnt-aldia">—</div>
+    </div>
+    <div class="sem-row">
+      <div class="sem-label" style="color:var(--gray)">SIN HIST.</div>
+      <div class="sem-bar-wrap">
+        <div class="sem-bar" id="bar-sinh" style="background:var(--gray);width:0%"></div>
+      </div>
+      <div class="sem-count" style="color:var(--gray)" id="cnt-sinh">—</div>
+    </div>
+  </div>
+
+  <!-- COSTOS POR SERVICIO -->
+  <div class="section-title">Costo por Servicio</div>
+  <div class="chart-container">
+    <div class="bar-chart" id="cost-chart"></div>
+  </div>
+
+  <!-- TAREAS CRITICAS -->
+  <div class="section-title">Estado de Tareas</div>
+  <div class="task-list" id="task-list"></div>
+
+  <!-- CONFIABILIDAD -->
+  <div class="section-title">Confiabilidad</div>
+  <div class="kpi-grid">
+    <div class="kpi-card yellow" style="animation-delay:0.2s">
+      <div class="kpi-label">Km desde último servicio</div>
+      <div class="kpi-value yellow" id="kpi-kmserv">—</div>
+      <div class="kpi-unit">km</div>
+    </div>
+    <div class="kpi-card" style="animation-delay:0.3s">
+      <div class="kpi-label">Último servicio</div>
+      <div class="kpi-value accent" id="kpi-ultserv" style="font-size:14px">—</div>
+      <div class="kpi-unit">fecha</div>
+    </div>
+    <div class="kpi-card green" style="animation-delay:0.4s">
+      <div class="kpi-label">% Tareas Al Día</div>
+      <div class="kpi-value green" id="kpi-pct-aldia">—</div>
+      <div class="kpi-unit">del total</div>
+    </div>
+    <div class="kpi-card red" style="animation-delay:0.5s">
+      <div class="kpi-label">% Tareas Vencidas</div>
+      <div class="kpi-value red" id="kpi-pct-venc">—</div>
+      <div class="kpi-unit">del total</div>
+    </div>
+  </div>
+
+  <div class="footer" id="footer-time">CMMS AUTO — AC4561 NISSAN QASHQAI 2013</div>
+</div>
+</div>
+
+<script>
+const SHEET_ID = '1aVZJTD43LZme3sIzvxT5uNZpyVeo212FoFlV27D0ReU';
+
+function sheetUrl(sheetName) {
+  return `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(sheetName)}`;
+}
+
+async function fetchSheet(sheetName) {
+  const res = await fetch(sheetUrl(sheetName));
+  const text = await res.text();
+  const json = JSON.parse(text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\)/)[1]);
+  const rows = json.table.rows;
+  const cols = json.table.cols.map(c => c.label);
+  return rows.map(r => {
+    const obj = {};
+    r.c.forEach((cell, i) => {
+      obj[cols[i]] = cell ? cell.v : null;
+    });
+    return obj;
+  });
+}
+
+function fmt(n) {
+  if (n === null || n === undefined || isNaN(n)) return '0.00';
+  return parseFloat(n).toFixed(2);
+}
+
+function fmtKm(n) {
+  if (!n) return '0';
+  return parseInt(n).toLocaleString('es-PA');
+}
+
+async function loadDashboard() {
+  try {
+    const [vehiculo, bitacora, planMant, kpis] = await Promise.all([
+      fetchSheet('Vehiculo'),
+      fetchSheet('Bitacora'),
+      fetchSheet('Plan de Mantenimiento'),
+      fetchSheet('KPIs')
+    ]);
+
+    // VEHICLE
+    const v = vehiculo[0];
+    document.getElementById('v-modelo').textContent = `${v['MARCA'] || ''} ${v['MODELO'] || ''}`;
+    document.getElementById('v-placa').textContent = `PLACA: ${v['ID_VEHICULO'] || ''} · ${v['AÑO'] || ''}`;
+    document.getElementById('v-km').innerHTML = `${fmtKm(v['KILOMETRAJE'])} <span>km</span>`;
+
+    // KPIs — nombres exactos de la hoja
+    const kpiMap = {};
+    kpis.forEach(k => {
+      const key = k['Indicador'] || k['INDICADOR'];
+      if (key) kpiMap[key.trim()] = k['Valor'] || k['VALOR'];
+    });
+
+    document.getElementById('kpi-total').textContent = `B/. ${fmt(kpiMap['Costo Total'])}`;
+    document.getElementById('kpi-prev').textContent = `B/. ${fmt(kpiMap['Costo preventivo'])}`;
+    document.getElementById('kpi-corr').textContent = `B/. ${fmt(kpiMap['Costo correctivo'])}`;
+    document.getElementById('kpi-prom').textContent = `B/. ${fmt(kpiMap['Costo promedio'])}`;
+    document.getElementById('kpi-km').textContent = `${fmt(kpiMap['Costo por Km'])}`;
+    document.getElementById('kpi-servicios').textContent = parseInt(kpiMap['Total servicios'] || 0);
+
+    // SEMAPHORE
+    const venc = parseInt(kpiMap['Tareas vencidas'] || 0);
+    const prox = parseInt(kpiMap['Tareas proximas'] || 0);
+    const aldia = parseInt(kpiMap['Tareas al día'] || 0);
+    const sinh = parseInt(kpiMap['Sin historial'] || 0);
+    const total = venc + prox + aldia + sinh || 1;
+
+    document.getElementById('cnt-vencido').textContent = venc;
+    document.getElementById('cnt-proximo').textContent = prox;
+    document.getElementById('cnt-aldia').textContent = aldia;
+    document.getElementById('cnt-sinh').textContent = sinh;
+
+    setTimeout(() => {
+      document.getElementById('bar-vencido').style.width = `${(venc/total)*100}%`;
+      document.getElementById('bar-proximo').style.width = `${(prox/total)*100}%`;
+      document.getElementById('bar-aldia').style.width = `${(aldia/total)*100}%`;
+      document.getElementById('bar-sinh').style.width = `${(sinh/total)*100}%`;
+    }, 300);
+
+    // COST CHART por servicio
+    const chartEl = document.getElementById('cost-chart');
+    const maxCost = Math.max(...bitacora.map(b => parseFloat(b['COSTO'] || 0)));
+
+    function parseFecha(f) {
+      if (!f) return '—';
+      // Sheets gviz devuelve "Date(year,month,day)" con mes base 0
+      if (typeof f === 'string' && f.startsWith('Date(')) {
+        const parts = f.replace('Date(', '').replace(')', '').split(',');
+        const d = new Date(parseInt(parts[0]), parseInt(parts[1]), parseInt(parts[2]));
+        return d.toLocaleDateString('es-PA', {day:'2-digit', month:'short', year:'numeric'});
+      }
+      if (typeof f === 'string' && f.includes('/')) {
+        const [d, m, y] = f.split('/');
+        return new Date(`${y}-${m}-${d}`).toLocaleDateString('es-PA', {day:'2-digit', month:'short', year:'numeric'});
+      }
+      if (f instanceof Date) return f.toLocaleDateString('es-PA', {day:'2-digit', month:'short', year:'numeric'});
+      return '—';
+    }
+
+    bitacora.forEach((b, i) => {
+      const cost = parseFloat(b['COSTO'] || 0);
+      const pct = maxCost > 0 ? (cost / maxCost) * 100 : 0;
+      const fecha = parseFecha(b['Fecha']);
+      const tarea = b['ID_TAREA'] || '—';
+
+      const row = document.createElement('div');
+      row.className = 'bar-row';
+      row.style.animationDelay = `${i * 0.1}s`;
+      row.innerHTML = `
+        <div class="bar-name">${tarea} · ${fecha}</div>
+        <div class="bar-track">
+          <div class="bar-fill" style="width:0%" data-pct="${pct}">
+            <span class="bar-val">B/.${fmt(cost)}</span>
+          </div>
+        </div>
+      `;
+      chartEl.appendChild(row);
+    });
+
+    setTimeout(() => {
+      document.querySelectorAll('.bar-fill').forEach(el => {
+        el.style.width = el.dataset.pct + '%';
+      });
+    }, 400);
+
+    // TASK LIST
+    const taskEl = document.getElementById('task-list');
+    const tareas = planMant.filter(t => t['ID_TAREA'] && t['NOMBRE DE TAREA']);
+
+    const estadoOrder = { 'VENCIDO': 0, 'PROXIMO': 1, 'AL DIA': 2, 'SIN HISTORIAL': 3, 'BAJO DEMANDA': 4 };
+    tareas.sort((a, b) => (estadoOrder[a['Estado']] ?? 5) - (estadoOrder[b['Estado']] ?? 5));
+
+    tareas.forEach((t, i) => {
+      const estado = (t['Estado'] || 'SIN HISTORIAL').trim().toUpperCase();
+      const colorMap = {
+        'VENCIDO': 'var(--red)',
+        'PROXIMO': 'var(--yellow)',
+        'AL DIA': 'var(--green)',
+        'SIN HISTORIAL': 'var(--gray)',
+        'BAJO DEMANDA': 'var(--accent)'
+      };
+      const classMap = {
+        'VENCIDO': 'status-vencido',
+        'PROXIMO': 'status-proximo',
+        'AL DIA': 'status-aldia',
+        'SIN HISTORIAL': 'status-sinhistorial',
+        'BAJO DEMANDA': 'status-aldia'
+      };
+
+      const item = document.createElement('div');
+      item.className = 'task-item';
+      item.style.animationDelay = `${i * 0.06}s`;
+      item.innerHTML = `
+        <div class="task-indicator" style="background:${colorMap[estado] || 'var(--gray)'}"></div>
+        <div class="task-name">${t['NOMBRE DE TAREA']}</div>
+        <div class="task-status ${classMap[estado] || 'status-sinhistorial'}">${estado}</div>
+      `;
+      taskEl.appendChild(item);
+    });
+
+    // CONFIABILIDAD
+    document.getElementById('kpi-kmserv').textContent = fmtKm(kpiMap['Km último servicio'] || 0);
+    const ultServRaw = kpiMap['Último servicio'];
+    document.getElementById('kpi-ultserv').textContent = parseFecha(ultServRaw);
+
+    const pctAldia = parseFloat(kpiMap['% Al dia'] || 0);
+    const pctVenc = parseFloat(kpiMap['% Vencidos'] || 0);
+    document.getElementById('kpi-pct-aldia').textContent = `${(pctAldia * 100).toFixed(0)}%`;
+    document.getElementById('kpi-pct-venc').textContent = `${(pctVenc * 100).toFixed(0)}%`;
+
+    // FOOTER
+    const now = new Date().toLocaleString('es-PA');
+    document.getElementById('footer-time').textContent = `Actualizado: ${now}`;
+    document.getElementById('last-update').textContent = now.split(',')[1]?.trim() || 'EN VIVO';
+
+    // SHOW
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+
+  } catch (err) {
+    document.getElementById('loading').innerHTML = `
+      <div class="error-msg">
+        ⚠️ Error cargando datos.<br>
+        Verifica que la hoja sea pública.<br><br>
+        <small>${err.message}</small>
+      </div>
+    `;
+    console.error(err);
+  }
+}
+
+loadDashboard();
+// Auto-refresh cada 5 minutos
+setInterval(loadDashboard, 300000);
+</script>
+</body>
+</html>
